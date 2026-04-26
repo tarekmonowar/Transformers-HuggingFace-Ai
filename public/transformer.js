@@ -1,9 +1,4 @@
-import {
-  pipeline,
-  env,
-} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2";
-
-env.allowLocalModels = false;
+import { pipeline } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.8.0";
 
 const originalImage = document.getElementById("originalImage");
 const detectedImage = document.getElementById("detectedImage");
@@ -22,8 +17,6 @@ const setStatus = (msg) => {
 const setBusy = (busy) => {
   detectBtn.disabled = busy;
   fileInput.disabled = busy;
-  detectBtn.classList.toggle("is-loading", busy);
-  detectBtn.setAttribute("aria-busy", busy ? "true" : "false");
 };
 
 const clearBoxes = () => {
@@ -35,19 +28,7 @@ const ensureDetector = async () => {
 
   setStatus("Loading object-detection model...");
   detector = await pipeline("object-detection", MODEL_ID);
-
-  // Warmup pass: forces WebGPU shader compilation now (during a state the user
-  // already perceives as "loading"), so the first real detection is fast.
-  setStatus("Warming up GPU (one-time)...");
-  try {
-    await detector(originalImage.src, {
-      threshold: 0.95,
-      percentage: true,
-    });
-  } catch {
-    // best-effort
-  }
-
+  setStatus("Warming up model (one-time)...");
   return detector;
 };
 
@@ -60,9 +41,9 @@ const drawBox = ({ label, score, box }) => {
       .toString(16)
       .padStart(6, "0");
 
-  const boxEl = document.createElement("div");
-  boxEl.className = "box";
-  Object.assign(boxEl.style, {
+  const boxElement = document.createElement("div");
+  boxElement.className = "box";
+  Object.assign(boxElement.style, {
     borderColor: color,
     left: 100 * xmin + "%",
     top: 100 * ymin + "%",
@@ -70,38 +51,28 @@ const drawBox = ({ label, score, box }) => {
     height: 100 * (ymax - ymin) + "%",
   });
 
-  const labelEl = document.createElement("span");
-  labelEl.className = "box-label";
-  labelEl.textContent = `${label}: ${Math.floor(score * 100)}%`;
-  labelEl.style.backgroundColor = color;
-  boxEl.appendChild(labelEl);
+  const labelElement = document.createElement("span");
+  labelElement.className = "box-label";
+  labelElement.textContent = `${label}: ${Math.floor(score * 100)}%`;
+  labelElement.style.backgroundColor = color;
+  boxElement.appendChild(labelElement);
 
-  detectedFrame.appendChild(boxEl);
+  detectedFrame.appendChild(boxElement);
 };
 
 const detect = async () => {
-  const inputUrl = originalImage.currentSrc || originalImage.src;
-  if (!inputUrl) return;
   try {
     setBusy(true);
     clearBoxes();
-
-    // Keep "Detected" panel aligned with "Original" (right may be a static demo image at first).
-    detectedImage.src = inputUrl;
+    detectedImage.src = originalImage.src;
 
     const model = await ensureDetector();
     setStatus("Detecting objects...");
 
-    const results = await model(inputUrl, {
-      threshold: 0.5,
+    const results = await model(originalImage.src, {
+      threshold: 0.95,
       percentage: true,
     });
-
-    setStatus("Drawing...");
-    // Yield one paint frame so the "Drawing..." status actually renders
-    // before the boxes appear (drawing 15+ boxes is sub-millisecond, so without
-    // this yield the browser would skip painting "Drawing..." entirely).
-    await new Promise((r) => requestAnimationFrame(r));
 
     results.forEach(drawBox);
 
