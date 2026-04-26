@@ -176,6 +176,87 @@ body {
   opacity: 0.7;
 }
 
+/* ---- Streaming bubble ---- */
+.bubble.streaming {
+  position: relative;
+}
+
+.bubble.error {
+  background: #3a1a1a !important;
+  color: #ffb4b4 !important;
+  border: 1px solid #5a2a2a;
+}
+
+.stream-text {
+  white-space: pre-wrap;
+}
+
+/* Animated three-dot typing indicator (shown until first token arrives) */
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  display: inline-block;
+  animation: typing-bounce 1.2s infinite ease-in-out both;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: -0.24s;
+}
+.typing-dots span:nth-child(2) {
+  animation-delay: -0.12s;
+}
+
+@keyframes typing-bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.35;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Blinking caret while tokens are streaming */
+.caret {
+  display: inline-block;
+  margin-left: 2px;
+  color: #5eead4;
+  animation: caret-blink 1s steps(1) infinite;
+  font-weight: 700;
+  transform: translateY(-1px);
+}
+
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Send / Stop button states */
+.chat-input button.stop {
+  background: linear-gradient(135deg, #f87171, #fb923c);
+  color: #1a0606;
+}
+
 .chat-input {
   display: flex;
   gap: 8px;
