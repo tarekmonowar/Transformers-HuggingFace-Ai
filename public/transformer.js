@@ -17,6 +17,8 @@ const setStatus = (msg) => {
 const setBusy = (busy) => {
   detectBtn.disabled = busy;
   fileInput.disabled = busy;
+  detectBtn.classList.toggle("is-loading", busy);
+  detectBtn.setAttribute("aria-busy", busy ? "true" : "false");
 };
 
 const clearBoxes = () => {
@@ -100,5 +102,8 @@ fileInput.addEventListener("change", (e) => {
   originalImage.src = url;
   detectedImage.src = url;
 
-  detectedImage.onload = () => detect();
+  detectedImage.onload = () => {
+    detectedImage.onload = null;
+    detect();
+  };
 });
