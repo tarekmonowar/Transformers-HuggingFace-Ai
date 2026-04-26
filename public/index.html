@@ -5,17 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Local AI Playground — Ollama & Hugging Face</title>
     <link rel="stylesheet" href="./index.css" />
+    <link rel="stylesheet" href="./transformer.css" />
   </head>
   <body>
     <main class="app">
       <header class="hero">
-        <h1>Local AI Playground</h1>
+        <h1>Hugging-Face & Transformers Library</h1>
         <p class="subtitle">
           A small project where I'm learning to run AI models locally with
-          <strong>Ollama</strong> and <strong>Hugging Face</strong>. Pick a
-          provider and start chatting.
+          <strong>Hugging Face</strong> and <strong>Transformers.js</strong>.
         </p>
       </header>
+
+      <section class="transformer-card" id="transformerCard">
+        <header class="transformer-head">
+          <h2>Object Detection</h2>
+          <p class="subtitle-sm">
+            Runs entirely in your browser with
+            <strong>Transformers.js</strong>. Upload any image and the model
+            will draw boxes around objects it finds.
+          </p>
+        </header>
+
+        <div class="image-pair">
+          <figure class="image-slot">
+            <figcaption>Original</figcaption>
+            <div class="image-frame">
+              <img
+                id="originalImage"
+                alt="Original"
+                src="./images/orginalimage.png"
+              />
+            </div>
+          </figure>
+
+          <figure class="image-slot">
+            <figcaption>Detected</figcaption>
+            <div class="image-frame" id="detectedFrame">
+              <img
+                id="detectedImage"
+                alt="Detected"
+                src="./images/outputImage.png"
+              />
+            </div>
+          </figure>
+        </div>
+
+        <div class="transformer-controls">
+          <label class="upload-btn" for="imageUpload">
+            <span>Upload an image</span>
+          </label>
+          <input type="file" id="imageUpload" accept="image/*" hidden />
+          <button
+            type="button"
+            id="detectBtn"
+            class="detect-btn"
+            aria-busy="false"
+          >
+            <span class="detect-btn-spinner" aria-hidden="true"></span>
+            <span class="detect-btn-label">Detect Objects</span>
+          </button>
+          <span id="transformerStatus" class="transformer-status">
+            Click "Detect Objects" to start.
+          </span>
+        </div>
+      </section>
 
       <div class="tabs" role="tablist">
         <button
@@ -82,7 +136,9 @@
         >
           <div class="msg bot">
             <div class="bubble">
-              Hi! I'm the <strong>Hugging Face</strong> assistant. Ask me anything below. I'm using open-source models from the Hugging Face Hub!
+              Hi! I'm the <strong>Hugging Face</strong> assistant. Ask me
+              anything below. I'm using open-source models from the Hugging Face
+              Hub!
             </div>
           </div>
         </div>
@@ -90,7 +146,9 @@
         <div class="chat-window" id="chat-ollama" data-provider="ollama">
           <div class="msg bot">
             <div class="bubble">
-              Hi! I'm the <strong>Ollama</strong> (local) assistant. Ask me anything below. Make sure you have the Ollama model running on your PC for me to respond!
+              Hi! I'm the <strong>Ollama</strong> (local) assistant. Ask me
+              anything below. Make sure you have the Ollama model running on
+              your PC for me to respond!
             </div>
           </div>
         </div>
@@ -111,6 +169,7 @@
       </footer>
     </main>
 
+    <script type="module" src="./transformer.js"></script>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
