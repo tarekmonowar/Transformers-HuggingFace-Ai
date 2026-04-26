@@ -30,12 +30,12 @@ tabs.forEach((tab) => {
   tab.addEventListener("click", () => setActiveProvider(tab.dataset.provider));
 });
 
-function getActiveWindow() {
-  return document.getElementById(`chat-${activeProvider}`);
+function getWindow(provider) {
+  return document.getElementById(`chat-${provider}`);
 }
 
-function addMessage(text, who) {
-  const win = getActiveWindow();
+function addMessage(text, who, provider) {
+  const win = getWindow(provider);
   const wrap = document.createElement("div");
   wrap.className = `msg ${who}`;
   const bubble = document.createElement("div");
@@ -44,7 +44,7 @@ function addMessage(text, who) {
   wrap.appendChild(bubble);
   win.appendChild(wrap);
   win.scrollTop = win.scrollHeight;
-  return bubble;
+  return { bubble, win };
 }
 
 form.addEventListener("submit", async (e) => {
@@ -54,11 +54,11 @@ form.addEventListener("submit", async (e) => {
 
   const provider = activeProvider;
 
-  addMessage(message, "user");
+  addMessage(message, "user", provider);
   input.value = "";
   sendBtn.disabled = true;
 
-  const typingBubble = addMessage("Thinking...", "bot");
+  const { bubble: typingBubble, win } = addMessage("Thinking...", "bot", provider);
   typingBubble.classList.add("typing");
 
   try {
@@ -68,15 +68,38 @@ form.addEventListener("submit", async (e) => {
       body: JSON.stringify({ message }),
     });
 
-    const data = await res.json().catch(() => ({}));
-
     if (!res.ok) {
-      throw new Error(data.error || `Request failed (HTTP ${res.status})`);
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Request failed (HTTP ${res.status})`);
     }
 
-    typingBubble.classList.remove("typing");
-    typingBubble.textContent =
-      data.reply ?? data.response ?? data.message ?? JSON.stringify(data);
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.includes("text/plain") && res.body) {
+      typingBubble.classList.remove("typing");
+      typingBubble.textContent = "";
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        typingBubble.textContent = acc;
+        win.scrollTop = win.scrollHeight;
+      }
+
+      acc += decoder.decode();
+      typingBubble.textContent = acc;
+      win.scrollTop = win.scrollHeight;
+    } else {
+      const data = await res.json().catch(() => ({}));
+      typingBubble.classList.remove("typing");
+      typingBubble.textContent =
+        data.reply ?? data.response ?? data.message ?? JSON.stringify(data);
+    }
   } catch (err) {
     typingBubble.classList.remove("typing");
     typingBubble.textContent = `Error: ${err.message}`;
