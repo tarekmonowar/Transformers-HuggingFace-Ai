@@ -11,6 +11,7 @@ export async function* HuggingFaceServices(
   const client = new InferenceClient(env.hfToken);
 
   const stream = client.chatCompletionStream({
+    provider: "auto",
     model: env.hfModel,
     messages: [
       {
