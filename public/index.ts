@@ -31,6 +31,7 @@ tabs.forEach((tab) =>
   }),
 );
 
+// Update send button state based on streaming status
 const setSending = (streaming: boolean): void => {
   sendBtn.classList.toggle("stop", streaming);
   sendBtn.textContent = streaming ? "Stop" : "Send";
