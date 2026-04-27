@@ -30,7 +30,7 @@ The frontend is a single page with a chat box (Hugging Face / Ollama tabs) and a
   - `@huggingface/inference` (Hugging Face Inference API)
   - Ollama REST API (local, `llama3.2` by default)
   - `@xenova/transformers` (Transformers.js, browser-side)
-- **Frontend:** Vanilla HTML / CSS / JS (ES modules), streaming via `fetch` + `ReadableStream`
+- **Frontend:** TypeScript compiled to native ES modules (no bundler), streaming via `fetch` + `ReadableStream`
 
 ---
 
@@ -40,6 +40,8 @@ The frontend is a single page with a chat box (Hugging Face / Ollama tabs) and a
 Ai-Hugging-face/
 ├── app.ts                      # Express app + route mounting
 ├── server.ts                   # Server bootstrap
+├── tsconfig.json               # Server TS config (compiles to ./dist)
+├── tsconfig.client.json        # Client TS config (compiles public/**/*.ts in place)
 ├── config/
 │   └── env.ts                  # Env config (PORT, HF_TOKEN, OLLAMA_BASE_URL, ...)
 ├── HuggingFace/
@@ -52,16 +54,20 @@ Ai-Hugging-face/
 │   └── ollama.services.ts      # Calls local Ollama /api/chat
 └── public/
     ├── index.html              # UI: tabs + chat + object detection card
-    ├── index.js                # Chat UI logic (Hugging Face / Ollama tabs)
-    ├── transformer.js          # Browser-side object detection (Transformers.js)
+    ├── index.ts                # Chat UI logic (Hugging Face / Ollama tabs)
+    ├── transformer.ts          # Browser-side object detection (Transformers.js)
     ├── utils/
-    │   ├── stream.js           # fetch-based streaming reader
-    │   └── ui.js               # DOM helpers (bubbles, typing dots, etc.)
+    │   ├── stream.ts           # fetch-based streaming reader
+    │   └── ui.ts               # DOM helpers (bubbles, typing dots, etc.)
+    ├── types/
+    │   └── transformers-cdn.d.ts  # Ambient types for the Transformers.js CDN URL
     └── images/
         ├── orginalimage.png
         ├── outputImage.png
         └── pic.png
 ```
+
+> The browser loads the **compiled** `public/*.js` files (generated next to each `.ts` source by `tsconfig.client.json`). Compiled JS is git-ignored.
 
 ---
 
@@ -103,14 +109,31 @@ OLLAMA_MODEL=llama3.2
 npm run dev
 ```
 
-Open <http://localhost:9000>.
+This compiles the browser TypeScript (`public/**/*.ts` → `public/**/*.js`) and then starts the server with `ts-node`. Open <http://localhost:9000>.
+
+If you're actively editing browser code and want it recompiled on save, run the watcher in a second terminal:
+
+```bash
+npm run watch:client
+```
 
 ### 4. Build & start
 
 ```bash
-npm run build
-npm start
+npm run build      # builds both client (public) and server (dist)
+npm start          # runs node dist/server.js
 ```
+
+### Available scripts
+
+| Script                  | Does                                                                |
+| ----------------------- | ------------------------------------------------------------------- |
+| `npm run dev`           | Compile client TS → JS, then start server with `ts-node`            |
+| `npm run build`         | Build client + server                                               |
+| `npm run build:client`  | Compile `public/**/*.ts` → `public/**/*.js` (in place)              |
+| `npm run build:server`  | Compile server TS → `dist/`                                         |
+| `npm run watch:client`  | Watch-mode client compile                                           |
+| `npm start`             | Run the production server from `dist/`                              |
 
 ---
 
